@@ -1,5 +1,11 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import PixelCanvas from "./features/canvas/PixelCanvas";
+import LoginPage from "./features/auth/LoginPage";
+import SignupPage from "./features/auth/SignupPage";
+import Statistics from "./features/canvas/Statistics";
+import AboutUs from "./features/canvas/AboutUs";
+import Profile from "./features/canvas/Profile";
+import Pixels from "./features/canvas/Pixels";
 
 const buttonStyle: CSSProperties = {
   border: "1px solid rgba(148, 163, 184, 0.18)",
@@ -14,11 +20,18 @@ const buttonStyle: CSSProperties = {
 function App() {
   const getCurrentPage = () => {
     const normalizedPath = window.location.pathname.replace(/\/$/, "");
-    return normalizedPath === "/board" ? "board" : "home";
+    return normalizedPath === "/board" ? "board" : normalizedPath === "/login" ? "login" : normalizedPath === "/signup" ? "signup" : normalizedPath === "/statistics" ? "statistics" : normalizedPath === "/aboutus" ? "aboutus" : normalizedPath === "/profile" ? "profile" : normalizedPath === "/pixels" ? "pixels" : "home";
   };
 
-  const [page, setPage] = useState<"home" | "board">(getCurrentPage);
+  const [page, setPage] = useState<"home" | "login" | "signup" | "board" | "statistics" | "aboutus" | "profile" | "pixels">(getCurrentPage);
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    // Check if user is logged in from localStorage
+    return localStorage.getItem("isLoggedIn") === "true";
+  });
+
+  const username = localStorage.getItem("username") || "U";
+  const avatarLetter = username.charAt(0).toUpperCase();
 
   useEffect(() => {
     // TODO: future token validation via ping/pong auth requests
@@ -36,6 +49,30 @@ function App() {
     setPage("board");
   };
 
+  const handleLogin = () => {
+    window.history.pushState(null, "", "/login");
+    setPage("login");
+  };
+
+  const handleSignup = () => {
+    window.history.pushState(null, "", "/signup");
+    setPage("signup");
+  };
+
+  const handleLoginComplete = (username: string) => {
+    setIsLoggedIn(true);
+    localStorage.setItem("username", username);
+    window.history.pushState(null, "", "/");
+    setPage("home");
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    localStorage.removeItem("isLoggedIn");
+    setIsAvatarMenuOpen(false);
+  };
+
+
   return (
     <div
       style={
@@ -51,7 +88,11 @@ function App() {
             }
       }
     >
-      {page === "home" ? (
+      {page === "login" ? (
+        <LoginPage onLoginComplete={handleLoginComplete} onSignup={handleSignup} />
+      ) : page === "signup" ? (
+        <SignupPage onLoginComplete={handleLoginComplete} onBack={handleLogin} />
+      ) : page === "home" ? (
         <main
           style={{
             width: "100%",
@@ -102,74 +143,72 @@ function App() {
                   Jump into the board and start painting pixels.
                 </p>
               </div>
-              <div style={{ position: "relative" }}>
-                <button
-                  type="button"
-                  onClick={() => setIsAvatarMenuOpen((current) => !current)}
-                  style={{
-                    width: "3rem",
-                    height: "3rem",
-                    borderRadius: "999px",
-                    background: "linear-gradient(135deg, #4f46e5, #0ea5e9)",
-                    display: "grid",
-                    placeItems: "center",
-                    color: "#f8fafc",
-                    fontWeight: 700,
-                    boxShadow: "0 14px 28px rgba(0, 0, 0, 0.28)",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                  aria-label="Open avatar menu"
-                >
-                  U
-                </button>
-                {isAvatarMenuOpen ? (
-                  <div
-                    style={{
-                      position: "absolute",
-                      right: 0,
-                      marginTop: "0.85rem",
-                      width: "11rem",
-                      borderRadius: "1rem",
-                      background: "rgba(15, 23, 42, 0.98)",
-                      border: "1px solid rgba(148, 163, 184, 0.15)",
-                      boxShadow: "0 16px 35px rgba(0, 0, 0, 0.2)",
-                      zIndex: 10,
-                      overflow: "hidden",
-                    }}
+              <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+                {!isLoggedIn && (
+                  <button
+                    type="button"
+                    onClick={handleLogin}
+                    style={buttonStyle}
                   >
+                    Log in
+                  </button>
+                )}
+                {isLoggedIn && (
+                  <div style={{ position: "relative" }}>
                     <button
                       type="button"
+                      onClick={() => setIsAvatarMenuOpen((current) => !current)}
                       style={{
-                        width: "100%",
-                        padding: "0.85rem 1rem",
-                        border: "none",
-                        background: "transparent",
+                        width: "3rem",
+                        height: "3rem",
+                        borderRadius: "999px",
+                        background: "linear-gradient(135deg, #4f46e5, #0ea5e9)",
+                        display: "grid",
+                        placeItems: "center",
                         color: "#f8fafc",
-                        textAlign: "left",
+                        fontWeight: 700,
+                        boxShadow: "0 14px 28px rgba(0, 0, 0, 0.28)",
+                        border: "none",
                         cursor: "pointer",
                       }}
-                      onClick={() => setIsAvatarMenuOpen(false)}
+                      aria-label="Open avatar menu"
                     >
-                      Login
+                      {avatarLetter}
                     </button>
-                    <button
-                      type="button"
-                      style={{
-                        width: "100%",
-                        padding: "0.85rem 1rem",
-                        border: "none",
-                        background: "transparent",
-                        color: "#f8fafc",
-                        textAlign: "left",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => setIsAvatarMenuOpen(false)}
-                    >
-                      Sign in
-                    </button>
+                    {isAvatarMenuOpen ? (
+                      <div
+                        style={{
+                          position: "absolute",
+                          right: 0,
+                          marginTop: "0.85rem",
+                          width: "11rem",
+                          borderRadius: "1rem",
+                          background: "rgba(15, 23, 42, 0.98)",
+                          border: "1px solid rgba(148, 163, 184, 0.15)",
+                          boxShadow: "0 16px 35px rgba(0, 0, 0, 0.2)",
+                          zIndex: 10,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <button
+                          type="button"
+                          style={{
+                            width: "100%",
+                            padding: "0.85rem 1rem",
+                            border: "none",
+                            background: "transparent",
+                            color: "#f8fafc",
+                            textAlign: "left",
+                            cursor: "pointer",
+                          }}
+                          onClick={handleLogout}
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
-                ) : null}
+                )}
               </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%", maxWidth: "22rem", alignSelf: "center" }}>
@@ -184,9 +223,17 @@ function App() {
           </section>
 
         </main>
-      ) : (
-        <PixelCanvas />
-      )}
+      ) : page === "board" ? (
+        <PixelCanvas isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} setPage={setPage} />
+      ) : page === "statistics" ? (
+        <Statistics onBack={openBoard} />
+      ) : page === "aboutus" ? (
+        <AboutUs onBack={openBoard} />
+      ) : page === "profile" ? (
+        <Profile onBack={openBoard} setPage={setPage} />
+      ) : page === "pixels" ? (
+        <Pixels onBack={openBoard} />
+      ) : null}
     </div>
   );
 }

@@ -9,13 +9,19 @@ import styles from "./PixelCanvas.module.css";
 
 const COOLDOWN_SECONDS = 5;
 
-export default function PixelCanvas() {
+interface PixelCanvasProps {
+  isLoggedIn?: boolean;
+  setIsLoggedIn?: (value: boolean) => void;
+  setPage?: (page: "home" | "login" | "signup" | "board" | "statistics" | "aboutus" | "profile" | "pixels") => void;
+}
+
+export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage }: PixelCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const pixelBufferRef = useRef<Uint8Array>(new Uint8Array(GRID_WIDTH * GRID_HEIGHT));
   const [selectedColorIndex, setSelectedColorIndex] = useState(1);
   const [cooldown, setCooldown] = useState(0);
   const [hoverCell, setHoverCell] = useState<{ x: number; y: number } | null>(null);
-  const [isColorPanelOpen, setIsColorPanelOpen] = useState(true);
+  const [isColorPanelOpen, setIsColorPanelOpen] = useState(false);
   const renderRequestRef = useRef<() => void>(() => {});
 
   const { scale, offset, handleWheel, handlePointerDown, handlePointerMove, handlePointerUp, screenToGrid } = useZoomPan(canvasRef, {
@@ -174,6 +180,9 @@ export default function PixelCanvas() {
         gridWidth={GRID_WIDTH}
         gridHeight={GRID_HEIGHT}
         hoverCell={hoverCell}
+        isLoggedIn={isLoggedIn}
+        setIsLoggedIn={setIsLoggedIn}
+        setPage={setPage}
       />
 
       <div className={styles.canvasArea}>
