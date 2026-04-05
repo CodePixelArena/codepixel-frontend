@@ -1,10 +1,11 @@
-function App() {
+import PixelCanvas from "./features/canvas/PixelCanvas";
 
+function App() {
   return (
-    <>
-     <h1>Hello world</h1>
-    </>
-  )
+    <div>
+      <PixelCanvas />
+    </div>
+  );
 }
 
-export default App
+export default App;
