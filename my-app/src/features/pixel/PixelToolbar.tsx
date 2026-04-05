@@ -10,6 +10,13 @@ interface PixelToolbarProps {
   hoverCell: { x: number; y: number } | null;
 }
 
+const STATUS_DOT_CLASS: Record<string, string> = {
+  connected: styles.statusDotConnected,
+  connecting: styles.statusDotConnecting,
+  disconnected: styles.statusDotDisconnected,
+  error: styles.statusDotError,
+};
+
 export default function PixelToolbar({ status, cooldown, selectedColor, gridWidth, gridHeight, hoverCell }: PixelToolbarProps) {
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -26,54 +33,72 @@ export default function PixelToolbar({ status, cooldown, selectedColor, gridWidt
   }, []);
 
   return (
-    <section className={styles.toolbar}>
-      <div className={styles.toolbarHeader}>
-        <div className={styles.toolbarBrand}>
-          <div className={styles.toolbarTitle}>Pixel board</div>
-          <div className={styles.toolbarSubtitle}>Live pixel painting with realtime controls</div>
+    <header className={styles.toolbar}>
+      <div className={styles.toolbarBrand}>
+        <span className={styles.toolbarTitle}>CodePixel</span>
+        <span className={styles.toolbarBadge}>Board</span>
+      </div>
+
+      <div className={styles.toolbarDivider} />
+
+      <div className={styles.toolbarStats}>
+        <div className={styles.toolbarStat}>
+          <span className={`${styles.statusDot} ${STATUS_DOT_CLASS[status] ?? ""}`} />
+          <span className={styles.statValue}>{status}</span>
         </div>
-        <div className={styles.avatarWrapper} ref={menuRef}>
-          <button
-            type="button"
-            className={styles.avatarButton}
-            onClick={() => setIsAvatarMenuOpen((current) => !current)}
-            aria-label="Open avatar menu"
-            aria-expanded={isAvatarMenuOpen}
-          >
-            @
-          </button>
-          {isAvatarMenuOpen ? (
-            <div className={styles.avatarMenu}>
-              <button type="button" className={styles.avatarMenuItem} onClick={() => setIsAvatarMenuOpen(false)}>
-                Login
-              </button>
-              <button type="button" className={styles.avatarMenuItem} onClick={() => setIsAvatarMenuOpen(false)}>
-                Sign in
-              </button>
-            </div>
-          ) : null}
+
+        <span className={styles.toolbarStatSep} />
+
+        <div className={styles.toolbarStat}>
+          <span className={styles.statLabel}>Cooldown</span>
+          <span className={`${styles.statValue} ${cooldown > 0 ? styles.statValueCooldown : ""}`}>
+            {cooldown > 0 ? `${cooldown}s` : "Ready"}
+          </span>
+        </div>
+
+        <span className={styles.toolbarStatSep} />
+
+        <div className={styles.toolbarStat}>
+          <span className={styles.statLabel}>Grid</span>
+          <span className={styles.statValue}>{gridWidth}×{gridHeight}</span>
+        </div>
+
+        <span className={styles.toolbarStatSep} />
+
+        <div className={styles.toolbarStat}>
+          <span className={styles.statLabel}>Cursor</span>
+          <span className={styles.statValue}>{hoverCell ? `${hoverCell.x}, ${hoverCell.y}` : "—"}</span>
+        </div>
+
+        <span className={styles.toolbarStatSep} />
+
+        <div className={styles.toolbarStat}>
+          <span className={styles.colorChip} style={{ background: selectedColor }} title={`Color: ${selectedColor}`} />
+          <span className={styles.statValue}>{selectedColor}</span>
         </div>
       </div>
-      <div className={styles.toolbarItem}>
-        <span className={styles.toolbarLabel}>Connection</span>
-        <span className={styles.toolbarValue}>{status}</span>
+
+      <div className={styles.avatarWrapper} ref={menuRef}>
+        <button
+          type="button"
+          className={styles.avatarButton}
+          onClick={() => setIsAvatarMenuOpen((current) => !current)}
+          aria-label="Open avatar menu"
+          aria-expanded={isAvatarMenuOpen}
+        >
+          U
+        </button>
+        {isAvatarMenuOpen ? (
+          <div className={styles.avatarMenu}>
+            <button type="button" className={styles.avatarMenuItem} onClick={() => setIsAvatarMenuOpen(false)}>
+              Login
+            </button>
+            <button type="button" className={styles.avatarMenuItem} onClick={() => setIsAvatarMenuOpen(false)}>
+              Sign in
+            </button>
+          </div>
+        ) : null}
       </div>
-      <div className={styles.toolbarItem}>
-        <span className={styles.toolbarLabel}>Cooldown</span>
-        <span className={styles.toolbarValue}>{cooldown > 0 ? `${cooldown}s` : "Ready"}</span>
-      </div>
-      <div className={styles.toolbarItem}>
-        <span className={styles.toolbarLabel}>Selected color</span>
-        <span className={styles.colorPreview} style={{ background: selectedColor }} />
-      </div>
-      <div className={styles.toolbarItem}>
-        <span className={styles.toolbarLabel}>Grid</span>
-        <span className={styles.toolbarValue}>{gridWidth} x {gridHeight}</span>
-      </div>
-      <div className={styles.toolbarItem}>
-        <span className={styles.toolbarLabel}>Hover</span>
-        <span className={styles.toolbarValue}>{hoverCell ? `${hoverCell.x}, ${hoverCell.y}` : "—"}</span>
-      </div>
-    </section>
+    </header>
   );
 }

@@ -38,14 +38,18 @@ function App() {
 
   return (
     <div
-      style={{
-        minHeight: "100vh",
-        padding: "2rem",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "radial-gradient(circle at top, #111827 0%, #020617 70%)",
-      }}
+      style={
+        page === "board"
+          ? { width: "100%", height: "100vh", overflow: "hidden" }
+          : {
+              minHeight: "100vh",
+              padding: "2rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "radial-gradient(circle at top, #111827 0%, #020617 70%)",
+            }
+      }
     >
       {page === "home" ? (
         <main
@@ -181,9 +185,7 @@ function App() {
 
         </main>
       ) : (
-        <div style={{ width: "100%", maxWidth: "100%" }}>
-          <PixelCanvas />
-        </div>
+        <PixelCanvas />
       )}
     </div>
   );
