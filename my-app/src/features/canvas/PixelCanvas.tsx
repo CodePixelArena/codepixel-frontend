@@ -239,10 +239,6 @@ export default function PixelCanvas() {
             Colors
           </button>
         )}
-
-        <div className={styles.instructions}>
-          Drag to pan, scroll to zoom, click to place pixels.
-        </div>
       </div>
     </div>
   );
