@@ -289,6 +289,375 @@
   cursor: pointer;
 }
 
+.challengeModalOverlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(2, 8, 23, 0.68);
+  z-index: 30;
+}
+
+.challengeModal {
+  width: min(1080px, calc(100% - 1.5rem));
+  height: clamp(620px, 88vh, 820px);
+  overflow: hidden;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.99) 0%, rgba(8, 15, 30, 0.98) 100%);
+  box-shadow: 0 35px 70px rgba(0, 0, 0, 0.42);
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.challengeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.challengeTitle {
+  margin: 0;
+  font-size: 1.12rem;
+  letter-spacing: 0.01em;
+  color: #f8fafc;
+}
+
+.challengeBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.15rem;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.challengeTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.challengeName {
+  margin: 0;
+  color: #f8fafc;
+  font-weight: 700;
+  font-size: 1.08rem;
+}
+
+.challengeBadge {
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(34, 197, 94, 0.45);
+  background: rgba(34, 197, 94, 0.14);
+  color: #86efac;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.challengeText {
+  margin: 0;
+  color: #cbd5e1;
+  line-height: 1.42;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.challengeWorkspace {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr) minmax(180px, 220px);
+  gap: 0.7rem;
+  margin-top: 0.2rem;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.challengePanel {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(2, 8, 23, 0.45);
+  border-radius: 0.85rem;
+  padding: 0.75rem;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.editorPanel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: stretch;
+  padding: 0.45rem;
+}
+
+.sidePanel {
+  overflow: hidden;
+}
+
+.questionPanel {
+  overflow: hidden;
+}
+
+.questionPanel .challengeText {
+  margin-top: 0.6rem;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding-right: 0.25rem;
+}
+
+.editorShell {
+  margin-top: 0;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 0.85rem;
+  background: rgba(2, 8, 23, 0.85);
+  overflow: hidden;
+}
+
+.editorTopbar {
+  height: 2.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0 0.75rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.editorDots {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.editorDotRed,
+.editorDotYellow,
+.editorDotGreen {
+  width: 0.56rem;
+  height: 0.56rem;
+  border-radius: 50%;
+}
+
+.editorDotRed {
+  background: #ef4444;
+}
+
+.editorDotYellow {
+  background: #f59e0b;
+}
+
+.editorDotGreen {
+  background: #22c55e;
+}
+
+.editorFilename {
+  color: #f8fafc;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.editorMeta {
+  margin-left: auto;
+  color: #94a3b8;
+  font-size: 0.72rem;
+}
+
+.editorBody {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.editorGutter {
+  padding: 0.85rem 0.45rem 0.85rem 0.4rem;
+  border-right: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.82);
+  color: #64748b;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.76rem;
+  line-height: 1.6;
+  text-align: right;
+  overflow: hidden;
+  user-select: none;
+}
+
+.editorGutter span {
+  display: block;
+}
+
+.challengePanelTitle {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.challengePanelText {
+  margin: 0.5rem 0 0;
+  color: #cbd5e1;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 7;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.challengeError {
+  margin: 0.4rem 0 0;
+  color: #fca5a5;
+}
+
+.challengeLink {
+  margin-top: 0.35rem;
+  color: #93c5fd;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.challengeEditor {
+  margin-top: 0;
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  resize: none;
+  border-radius: 0;
+  border: none;
+  background: rgba(2, 8, 23, 0.98);
+  color: #e2e8f0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding: 0.85rem 0.95rem;
+  box-shadow: none;
+}
+
+.challengeEditor:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.35);
+}
+
+.editorStatusbar {
+  height: 1.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 0 0.75rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.95);
+  color: #94a3b8;
+  font-size: 0.74rem;
+}
+
+.challengeResult {
+  margin: 0.2rem 0 0;
+  color: #bfdbfe;
+  font-size: 0.83rem;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  background: rgba(30, 58, 138, 0.18);
+  border-radius: 0.7rem;
+  padding: 0.55rem 0.7rem;
+}
+
+.challengeActions {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.15);
+  flex-shrink: 0;
+}
+
+.challengeButton,
+.challengeButtonPrimary {
+  border-radius: 0.7rem;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  padding: 0.6rem 0.95rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.86rem;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.challengeButton {
+  background: rgba(15, 23, 42, 0.9);
+  color: #e2e8f0;
+}
+
+.challengeButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(148, 163, 184, 0.45);
+  background: rgba(30, 41, 59, 0.95);
+}
+
+.challengeButtonPrimary {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.34), rgba(14, 165, 233, 0.3));
+  border-color: rgba(59, 130, 246, 0.62);
+  color: #eff6ff;
+}
+
+.challengeButtonPrimary:hover {
+  transform: translateY(-1px);
+  border-color: rgba(96, 165, 250, 0.8);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.46), rgba(14, 165, 233, 0.4));
+}
+
+.challengeButtonPrimary:disabled,
+.challengeButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 920px) {
+  .challengeModal {
+    width: min(100%, 100%);
+    height: calc(100vh - 1.25rem);
+    padding: 1rem;
+  }
+
+  .challengeWorkspace {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+  }
+
+  .challengeEditor {
+    height: 100%;
+    flex: 1;
+  }
+
+  .editorShell {
+    min-height: 0;
+  }
+}
+
 .colorWheelWrapper {
   position: absolute;
   right: 1rem;
