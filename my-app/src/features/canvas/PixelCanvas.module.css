@@ -43,6 +43,13 @@
   flex-shrink: 0;
 }
 
+.toolbarBrandButton {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
 .toolbarTitle {
   font-size: 1rem;
   font-weight: 800;
@@ -225,6 +232,147 @@
   min-height: 0;
   overflow: hidden;
   background: var(--canvas-bg, #020817);
+}
+
+.ownedPixelsPanel {
+  position: absolute;
+  left: 0.9rem;
+  top: 0.9rem;
+  z-index: 8;
+  width: min(240px, calc(100vw - 1.8rem));
+  max-height: calc(100% - 1.8rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 0.9rem;
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 18px 42px rgba(8, 15, 30, 0.36);
+  backdrop-filter: blur(10px);
+}
+
+.ownedPixelsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.ownedPixelsHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.ownedPixelsTitle {
+  color: #f8fafc;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.ownedPixelsSubtitle {
+  margin-top: 0.2rem;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.ownedPixelsCount {
+  min-width: 1.8rem;
+  padding: 0.22rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(79, 70, 229, 0.15);
+  border: 1px solid rgba(79, 70, 229, 0.28);
+  color: #a5b4fc;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.ownedPixelsClose {
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: #cbd5e1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.ownedPixelsClose:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ownedPixelsList {
+  display: grid;
+  gap: 0.5rem;
+  overflow-y: auto;
+  padding-right: 0.15rem;
+}
+
+.ownedPixelItem {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.7rem 0.75rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(30, 41, 59, 0.7);
+  color: #f8fafc;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.ownedPixelItem:hover {
+  transform: translateY(-1px);
+  border-color: rgba(148, 163, 184, 0.24);
+  background: rgba(30, 41, 59, 0.9);
+}
+
+.ownedPixelItemActive {
+  border-color: rgba(248, 250, 252, 0.42);
+  background: rgba(71, 85, 105, 0.92);
+}
+
+.ownedPixelSwatch {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  flex-shrink: 0;
+}
+
+.ownedPixelMeta {
+  min-width: 0;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.ownedPixelCoords {
+  color: #f8fafc;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.ownedPixelChallenge {
+  color: #94a3b8;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ownedPixelHex {
+  grid-column: 2;
+  color: #cbd5e1;
+  font-size: 0.68rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 .canvas {
@@ -817,6 +965,13 @@
 }
 
 @media (max-width: 740px) {
+  .ownedPixelsPanel {
+    width: min(220px, calc(100vw - 1rem));
+    left: 0.5rem;
+    top: 0.5rem;
+    max-height: 36vh;
+  }
+
   .toolbarStats {
     gap: 0.35rem;
   }

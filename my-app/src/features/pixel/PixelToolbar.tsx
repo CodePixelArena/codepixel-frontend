@@ -10,7 +10,8 @@ interface PixelToolbarProps {
   hoverCell: { x: number; y: number } | null;
   isLoggedIn?: boolean;
   setIsLoggedIn?: (value: boolean) => void;
-  setPage?: (page: "home" | "login" | "signup" | "board" | "statistics" | "aboutus" | "profile" | "pixels") => void;
+  setPage?: (page: "home" | "login" | "signup" | "board" | "statistics" | "aboutus" | "profile") => void;
+  onTogglePixelsPanel?: () => void;
 }
 
 const STATUS_DOT_CLASS: Record<string, string> = {
@@ -30,6 +31,7 @@ export default function PixelToolbar({
   isLoggedIn = false,
   setIsLoggedIn,
   setPage,
+  onTogglePixelsPanel,
 }: PixelToolbarProps) {
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -57,7 +59,13 @@ export default function PixelToolbar({
   return (
     <header className={styles.toolbar}>
       <div className={styles.toolbarBrand}>
-        <span className={styles.toolbarTitle}>CodePixel</span>
+        <button
+          type="button"
+          className={styles.toolbarBrandButton}
+          onClick={() => { window.history.pushState(null, "", "/"); setPage?.("home"); }}
+        >
+          <span className={styles.toolbarTitle}>CodePixel</span>
+        </button>
         <span className={styles.toolbarBadge}>Board</span>
       </div>
 
@@ -136,7 +144,7 @@ export default function PixelToolbar({
                 <button type="button" className={styles.avatarMenuItem} onClick={() => { window.history.pushState(null, "", "/profile"); setPage?.("profile"); setIsAvatarMenuOpen(false); }}>
                   Profile
                 </button>
-                <button type="button" className={styles.avatarMenuItem} onClick={() => { window.history.pushState(null, "", "/pixels"); setPage?.("pixels"); setIsAvatarMenuOpen(false); }}>
+                <button type="button" className={styles.avatarMenuItem} onClick={() => { onTogglePixelsPanel?.(); setIsAvatarMenuOpen(false); }}>
                   Pixels
                 </button>
                 <button type="button" className={styles.avatarMenuItem} onClick={handleLogout}>

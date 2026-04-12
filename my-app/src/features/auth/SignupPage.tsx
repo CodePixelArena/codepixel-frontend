@@ -36,6 +36,82 @@ const errorStyle: CSSProperties = {
   fontSize: "clamp(0.75rem, 1.5vw, 0.875rem)",
 };
 
+const frameStyle: CSSProperties = {
+  width: "100vw",
+  height: "100vh",
+  display: "flex",
+  background: "radial-gradient(circle at top, #111827 0%, #020617 70%)",
+  position: "fixed",
+  inset: 0,
+  zIndex: 9999,
+};
+
+const sideStyle: CSSProperties = {
+  flex: 1,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "clamp(2rem, 4vw, 3rem)",
+  background: "linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(14, 165, 233, 0.05))",
+  borderRight: "1px solid rgba(148,163,184,0.1)",
+};
+
+const sideCardStyle: CSSProperties = {
+  width: "100%",
+  maxWidth: "420px",
+  padding: "2rem",
+  borderRadius: "1.5rem",
+  background: "rgba(15, 23, 42, 0.45)",
+  border: "1px solid rgba(148, 163, 184, 0.12)",
+  boxShadow: "0 24px 60px rgba(0, 0, 0, 0.18)",
+  textAlign: "left",
+};
+
+const markStyle: CSSProperties = {
+  width: "3.5rem",
+  height: "3.5rem",
+  borderRadius: "1rem",
+  display: "grid",
+  placeItems: "center",
+  marginBottom: "1.25rem",
+  background: "linear-gradient(135deg, rgba(79, 70, 229, 0.92), rgba(14, 165, 233, 0.88))",
+  boxShadow: "0 12px 30px rgba(14, 165, 233, 0.18)",
+};
+
+const markBarsStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(2, 9px)",
+  gap: "6px",
+};
+
+const markBarStyle = (height: string): CSSProperties => ({
+  width: "9px",
+  height,
+  borderRadius: "999px",
+  background: "#f8fafc",
+  opacity: 0.95,
+});
+
+const panelWrapStyle: CSSProperties = {
+  flex: 1,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "clamp(1rem, 4vw, 3rem)",
+  overflowY: "auto",
+};
+
+const panelStyle: CSSProperties = {
+  width: "100%",
+  maxWidth: "420px",
+  padding: "2rem",
+  borderRadius: "1.5rem",
+  background: "rgba(15, 23, 42, 0.72)",
+  border: "1px solid rgba(148, 163, 184, 0.14)",
+  boxShadow: "0 24px 60px rgba(0, 0, 0, 0.22)",
+  backdropFilter: "blur(12px)",
+};
+
 export default function SignupPage({ onLoginComplete, onBack }: SignupPageProps) {
   const [formData, setFormData] = useState({
     nickname: "",
@@ -126,6 +202,7 @@ export default function SignupPage({ onLoginComplete, onBack }: SignupPageProps)
 
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("username", formData.nickname);
+      localStorage.setItem("userEmail", formData.email);
 
       onLoginComplete(formData.nickname);
       setIsSubmitting(false);
@@ -143,64 +220,47 @@ export default function SignupPage({ onLoginComplete, onBack }: SignupPageProps)
   };
 
   return (
-    <div
-      style={{
-        width: "100vw",
-        height: "100vh",
-        display: "flex",
-        background: "radial-gradient(circle at top, #111827 0%, #020617 70%)",
-        position: "fixed",
-        inset: 0,
-        zIndex: 9999,
-      }}
-    >
-      {/* LEFT SIDE (UNCHANGED) */}
+    <div style={frameStyle}>
       {!isMobile && (
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "clamp(2rem, 4vw, 3rem)",
-            background:
-              "linear-gradient(135deg, rgba(79,70,229,0.1), rgba(14,165,233,0.05))",
-            borderRight: "1px solid rgba(148,163,184,0.1)",
-          }}
-        >
-          <div style={{ textAlign: "center", maxWidth: 400 }}>
-            <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🎨</div>
-            <h2 style={{ color: "#f8fafc", fontSize: "2rem" }}>CodePixel</h2>
-            <p style={{ color: "#cbd5e1" }}>
-              Join the creative community and paint pixel art together.
+        <div style={sideStyle}>
+          <div style={sideCardStyle}>
+            <div style={markStyle}>
+              <div style={markBarsStyle}>
+                <span style={markBarStyle("16px")} />
+                <span style={markBarStyle("22px")} />
+                <span style={markBarStyle("22px")} />
+                <span style={markBarStyle("16px")} />
+              </div>
+            </div>
+            <p style={{ margin: 0, textTransform: "uppercase", letterSpacing: "0.18em", fontSize: "0.78rem", color: "#7c93b4" }}>
+              CodePixel
+            </p>
+            <p style={{ color: "#cbd5e1", marginTop: "1rem", lineHeight: 1.7 }}>
+              Register once, solve challenges, and track your colors, submissions, and pixel history from one place.
             </p>
           </div>
         </div>
       )}
 
-      {/* RIGHT SIDE (IMPROVED) */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "2rem",
-        }}
-      >
+      <div style={panelWrapStyle}>
         <form
           onSubmit={handleSubmit}
           style={{
-            width: "100%",
-            maxWidth: 400,
+            ...panelStyle,
             display: "flex",
             flexDirection: "column",
-            gap: "1.2rem",
+            gap: "1rem",
           }}
         >
-          <h1 style={{ color: "#f8fafc", fontSize: "2rem" }}>
-            Create account ✨
-          </h1>
+          <div style={{ marginBottom: "0.8rem", textAlign: "center" }}>
+            <p style={{ margin: 0, textTransform: "uppercase", letterSpacing: "0.16em", fontSize: "0.76rem", color: "#7c93b4" }}>
+              Sign up
+            </p>
+            <h1 style={{ color: "#f8fafc", fontSize: "2rem", margin: "0.7rem 0 0" }}>
+              Create account
+            </h1>
+            <p style={{ color: "#cbd5e1", marginTop: "0.7rem" }}>Set up your account and join the canvas.</p>
+          </div>
 
           <input
             name="nickname"
@@ -246,15 +306,18 @@ export default function SignupPage({ onLoginComplete, onBack }: SignupPageProps)
             {isSubmitting ? "Creating..." : "Create account"}
           </button>
 
-          <p style={{ color: "#cbd5e1", textAlign: "center" }}>
-            Already have an account?{" "}
-            <span
-              onClick={onBack}
-              style={{ color: "#4f46e5", cursor: "pointer" }}
-            >
-              Sign in
-            </span>
-          </p>
+          <div style={{ textAlign: "center", marginTop: "0.4rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(148, 163, 184, 0.12)" }}>
+            <p style={{ color: "#cbd5e1" }}>
+              Already have an account?{" "}
+              <button
+                type="button"
+                onClick={onBack}
+                style={{ background: "none", border: "none", color: "#4f46e5", cursor: "pointer", fontWeight: 700 }}
+              >
+                Sign in
+              </button>
+            </p>
+          </div>
         </form>
       </div>
     </div>

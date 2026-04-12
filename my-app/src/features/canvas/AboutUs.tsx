@@ -76,66 +76,64 @@ export default function AboutUs({ onBack }: AboutUsProps) {
   }, []);
 
   return (
-    <div
-    className={styles.body}
-    style={{
-        height: "100vh",
-        overflowY: "auto",
-        overflowX: "hidden",
-    }}
-    >
+    <div className={styles.body}>
       {/* Pixel grid bg */}
       <div className={styles.pixelGrid} ref={gridRef}></div>
 
       <main className={styles.main}>
         {/* ── HERO ── */}
         <div className={styles.hero}>
-          <div className={styles.fadeIn}>
-            <div className={styles.heroTag}>About the platform</div>
+          <div className={styles.heroInner}>
+            <div className={styles.fadeIn}>
+              <div className={styles.heroTag}>About the platform</div>
+            </div>
+            <h1 className={styles.fadeIn}>
+              Code your way.<br />
+              <em>Own the canvas.</em>
+            </h1>
+            <p className={`${styles.heroSub} ${styles.fadeIn}`}>
+              <strong>CodePixel Arena</strong> is a gamified coding platform where every correct solution
+              is more than a score — it's a claim. Solve challenges, earn pixels,
+              and leave your mark on a shared digital world built entirely by its players.
+            </p>
+            <div className={`${styles.pixelCanvasPreview} ${styles.fadeIn}`} ref={previewRef}></div>
           </div>
-          <h1 className={styles.fadeIn}>
-            Code your way.<br />
-            <em>Own the canvas.</em>
-          </h1>
-          <p className={`${styles.heroSub} ${styles.fadeIn}`}>
-            <strong>CodePixel Arena</strong> is a gamified coding platform where every correct solution
-            is more than a score — it's a claim. Solve challenges, earn pixels,
-            and leave your mark on a shared digital world built entirely by its players.
-          </p>
-          <div className={`${styles.pixelCanvasPreview} ${styles.fadeIn}`} ref={previewRef}></div>
         </div>
 
         <div className={styles.sectionDivider}></div>
 
         {/* ── WHAT IS IT ── */}
         <section className={styles.section}>
-          <p className={styles.sectionLabel}><span>//</span> 01 — What is CodePixel Arena</p>
-          <h2>A platform where code<br />becomes territory.</h2>
-          <p className={styles.lead}>
-            At its core, CodePixel Arena is a <strong>competitive programming platform</strong> — but one with a twist
-            that makes it unlike anything else. The platform hosts a growing library of algorithmic
-            challenges across difficulty levels, from beginner-friendly problems to complex, multi-step puzzles.
-          </p>
-          <br />
-          <p className={styles.lead}>
-            What sets us apart is the <strong>pixel canvas</strong>. Every challenge is linked to a section
-            of a shared digital grid. When you solve a challenge correctly, you don't just earn points —
-            you <strong>claim ownership of pixels</strong>. Those pixels display your color on the canvas,
-            visible to every player on the platform. The grid is a living, evolving artwork, shaped entirely
-            by the collective achievements of the community.
-          </p>
-          <br />
-          <p className={styles.lead}>
-            A real-time <strong>leaderboard</strong> tracks scores across all challenges, giving you a clear
-            picture of where you stand. Search for challenges by title, tag, or username using our
-            <strong>fast autocomplete engine</strong>, find exactly what you're looking for, and start solving.
-          </p>
+          <div className={styles.sectionInner}>
+            <p className={styles.sectionLabel}><span>//</span> 01 — What is CodePixel Arena</p>
+            <h2>A platform where code<br />becomes territory.</h2>
+            <p className={styles.lead}>
+              At its core, CodePixel Arena is a <strong>competitive programming platform</strong> — but one with a twist
+              that makes it unlike anything else. The platform hosts a growing library of algorithmic
+              challenges across difficulty levels, from beginner-friendly problems to complex, multi-step puzzles.
+            </p>
+            <br />
+            <p className={styles.lead}>
+              What sets us apart is the <strong>pixel canvas</strong>. Every challenge is linked to a section
+              of a shared digital grid. When you solve a challenge correctly, you don't just earn points —
+              you <strong>claim ownership of pixels</strong>. Those pixels display your color on the canvas,
+              visible to every player on the platform. The grid is a living, evolving artwork, shaped entirely
+              by the collective achievements of the community.
+            </p>
+            <br />
+            <p className={styles.lead}>
+              A real-time <strong>leaderboard</strong> tracks scores across all challenges, giving you a clear
+              picture of where you stand. Search for challenges by title, tag, or username using our
+              <strong>fast autocomplete engine</strong>, find exactly what you're looking for, and start solving.
+            </p>
+          </div>
         </section>
 
         <div className={styles.sectionDivider}></div>
 
         {/* ── HOW IT WORKS ── */}
         <section className={styles.section}>
+          <div className={styles.sectionInner}>
           <p className={styles.sectionLabel}><span>//</span> 02 — How it works</p>
           <h2>Four steps from<br />problem to pixel.</h2>
           <div className={styles.steps}>
@@ -180,12 +178,14 @@ export default function AboutUs({ onBack }: AboutUsProps) {
               </div>
             </div>
           </div>
+          </div>
         </section>
 
         <div className={styles.sectionDivider}></div>
 
         {/* ── RULES ── */}
         <section className={styles.section}>
+          <div className={styles.sectionInner}>
           <p className={styles.sectionLabel}><span>//</span> 03 — Rules & how ownership works</p>
           <h2>Fair play,<br />clear rules.</h2>
           <p className={styles.lead}>
@@ -224,12 +224,14 @@ export default function AboutUs({ onBack }: AboutUsProps) {
               <p className={styles.ruleDesc}>Points accumulate with every successful solve. The leaderboard is a direct reflection of how many challenges you've completed, nothing more, nothing less.</p>
             </div>
           </div>
+          </div>
         </section>
 
         <div className={styles.sectionDivider}></div>
 
         {/* ── ACADEMIC / EDUCATIONAL ── */}
         <section className={styles.section}>
+          <div className={styles.sectionInner}>
           <p className={styles.sectionLabel}><span>//</span> 04 — The project behind the platform</p>
           <h2>Built to learn.<br />Designed to last.</h2>
           <p className={styles.lead}>
@@ -272,12 +274,14 @@ export default function AboutUs({ onBack }: AboutUsProps) {
             <span className={styles.techPill}>Triggers & Views</span>
             <span className={styles.techPill}>Role-Based Access</span>
           </div>
+          </div>
         </section>
 
         <div className={styles.sectionDivider}></div>
 
         {/* ── TEAM ── */}
         <section className={styles.teamSection}>
+          <div className={styles.sectionInner}>
           <h2 className={styles.teamTitle}>The Team</h2>
           <p className={styles.lead}>
             CodePixel Arena was conceived, designed, and built entirely by a two-person team.
@@ -304,6 +308,7 @@ export default function AboutUs({ onBack }: AboutUsProps) {
                 His focus was on making the system not just correct, but fast and maintainable.
               </p>
             </div>
+          </div>
           </div>
         </section>
 

@@ -5,7 +5,6 @@ import SignupPage from "./features/auth/SignupPage";
 import Statistics from "./features/canvas/Statistics";
 import AboutUs from "./features/canvas/AboutUs";
 import Profile from "./features/canvas/Profile";
-import Pixels from "./features/canvas/Pixels";
 
 const buttonStyle: CSSProperties = {
   border: "1px solid rgba(148, 163, 184, 0.18)",
@@ -20,10 +19,10 @@ const buttonStyle: CSSProperties = {
 function App() {
   const getCurrentPage = () => {
     const normalizedPath = window.location.pathname.replace(/\/$/, "");
-    return normalizedPath === "/board" ? "board" : normalizedPath === "/login" ? "login" : normalizedPath === "/signup" ? "signup" : normalizedPath === "/statistics" ? "statistics" : normalizedPath === "/aboutus" ? "aboutus" : normalizedPath === "/profile" ? "profile" : normalizedPath === "/pixels" ? "pixels" : "home";
+    return normalizedPath === "/board" ? "board" : normalizedPath === "/login" ? "login" : normalizedPath === "/signup" ? "signup" : normalizedPath === "/statistics" ? "statistics" : normalizedPath === "/aboutus" ? "aboutus" : normalizedPath === "/profile" ? "profile" : "home";
   };
 
-  const [page, setPage] = useState<"home" | "login" | "signup" | "board" | "statistics" | "aboutus" | "profile" | "pixels">(getCurrentPage);
+  const [page, setPage] = useState<"home" | "login" | "signup" | "board" | "statistics" | "aboutus" | "profile">(getCurrentPage);
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     // Check if user is logged in from localStorage
@@ -231,8 +230,6 @@ function App() {
         <AboutUs onBack={openBoard} />
       ) : page === "profile" ? (
         <Profile onBack={openBoard} setPage={setPage} />
-      ) : page === "pixels" ? (
-        <Pixels onBack={openBoard} />
       ) : null}
     </div>
   );

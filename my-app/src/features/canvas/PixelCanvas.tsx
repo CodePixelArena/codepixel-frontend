@@ -6,6 +6,7 @@ import { PALETTE, BASE_CELL_SIZE, GRID_HEIGHT, GRID_WIDTH, WS_URL } from "../../
 import PixelToolbar from "../pixel/PixelToolbar";
 import ColorPalette from "../pixel/ColorPalette";
 import styles from "./PixelCanvas.module.css";
+import { getProfileData, type OwnedPixel } from "./mockPlatformData";
 
 const COOLDOWN_SECONDS = 5;
 
@@ -23,12 +24,13 @@ interface ChallengeProblem {
 interface PixelCanvasProps {
   isLoggedIn?: boolean;
   setIsLoggedIn?: (value: boolean) => void;
-  setPage?: (page: "home" | "login" | "signup" | "board" | "statistics" | "aboutus" | "profile" | "pixels") => void;
+  setPage?: (page: "home" | "login" | "signup" | "board" | "statistics" | "aboutus" | "profile") => void;
 }
 
 export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage }: PixelCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const pixelBufferRef = useRef<Uint8Array>(new Uint8Array(GRID_WIDTH * GRID_HEIGHT));
+  const initialOwnedPixels = getProfileData().ownedPixels;
   const [selectedColorIndex, setSelectedColorIndex] = useState(1);
   const [cooldown, setCooldown] = useState(0);
   const [hoverCell, setHoverCell] = useState<{ x: number; y: number } | null>(null);
@@ -41,10 +43,13 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
   const [challengeResult, setChallengeResult] = useState<string | null>(null);
   const [isVerifyingChallenge, setIsVerifyingChallenge] = useState(false);
   const [pendingRecolorCell, setPendingRecolorCell] = useState<{ x: number; y: number } | null>(null);
+  const [ownedPixels, setOwnedPixels] = useState<OwnedPixel[]>(initialOwnedPixels);
+  const [isOwnedPixelsPanelOpen, setIsOwnedPixelsPanelOpen] = useState(false);
+  const [selectedOwnedPixelId, setSelectedOwnedPixelId] = useState<string | null>(null);
   const renderRequestRef = useRef<() => void>(() => {});
   const lastChallengeIdRef = useRef<string | null>(null);
 
-  const { scale, offset, handleWheel, handlePointerDown, handlePointerMove, handlePointerUp, screenToGrid } = useZoomPan(canvasRef, {
+  const { scale, offset, handleWheel, handlePointerDown, handlePointerMove, handlePointerUp, screenToGrid, focusCell } = useZoomPan(canvasRef, {
     width: GRID_WIDTH,
     height: GRID_HEIGHT,
     baseCellSize: BASE_CELL_SIZE,
@@ -69,8 +74,22 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
     scale,
     offset,
     hoverCell,
+    highlightedCell: ownedPixels.find((pixel) => pixel.id === selectedOwnedPixelId) ?? null,
     selectedColor: PALETTE[selectedColorIndex],
   });
+
+  useEffect(() => {
+    const nextBuffer = pixelBufferRef.current.slice();
+    for (const pixel of initialOwnedPixels) {
+      const paletteIndex = PALETTE.findIndex((color) => color.toLowerCase() === pixel.color.toLowerCase());
+      const index = pixel.y * GRID_WIDTH + pixel.x;
+      if (index >= 0 && index < nextBuffer.length) {
+        nextBuffer[index] = paletteIndex > 0 ? paletteIndex : 1;
+      }
+    }
+    pixelBufferRef.current = nextBuffer;
+    requestRender();
+  }, [initialOwnedPixels, requestRender]);
 
   useEffect(() => {
     renderRequestRef.current = requestRender;
@@ -80,6 +99,13 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
     (x: number, y: number) => {
       const index = y * GRID_WIDTH + x;
       pixelBufferRef.current[index] = selectedColorIndex;
+      setOwnedPixels((currentPixels) =>
+        currentPixels.map((pixel) =>
+          pixel.x === x && pixel.y === y
+            ? { ...pixel, color: PALETTE[selectedColorIndex], updatedAt: "Just now" }
+            : pixel,
+        ),
+      );
       requestRender();
       sendPixel({ x, y, color: selectedColorIndex });
     },
@@ -327,6 +353,41 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
     setSelectedColorIndex(index + 1);
   }, []);
 
+  const pickNearestPaletteIndex = useCallback(
+    (color: string) => {
+      const selectedRgb = hexToRgb(color);
+      if (!selectedRgb) {
+        return 1;
+      }
+
+      return PALETTE.reduce((best, paletteColor, index) => {
+        if (index === 0) {
+          return best;
+        }
+        const paletteRgb = hexToRgb(paletteColor);
+        if (!paletteRgb) {
+          return best;
+        }
+        const distance = colorDistance(selectedRgb, paletteRgb);
+        if (distance < best.distance) {
+          return { index, distance };
+        }
+        return best;
+      }, { index: 1, distance: Number.POSITIVE_INFINITY }).index;
+    },
+    [colorDistance, hexToRgb],
+  );
+
+  const handleOwnedPixelSelect = useCallback(
+    (pixel: OwnedPixel) => {
+      setSelectedOwnedPixelId(pixel.id);
+      setSelectedColorIndex(pickNearestPaletteIndex(pixel.color));
+      focusCell({ x: pixel.x, y: pixel.y }, Math.max(scale, 2.2));
+      requestRender();
+    },
+    [focusCell, pickNearestPaletteIndex, requestRender, scale],
+  );
+
   const onColorWheelChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       const selectedColor = event.target.value;
@@ -392,9 +453,55 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
         isLoggedIn={isLoggedIn}
         setIsLoggedIn={setIsLoggedIn}
         setPage={setPage}
+        onTogglePixelsPanel={() => setIsOwnedPixelsPanelOpen((current) => !current)}
       />
 
       <div className={styles.canvasArea}>
+        {isOwnedPixelsPanelOpen && ownedPixels.length > 0 ? (
+          <aside className={styles.ownedPixelsPanel}>
+            <div className={styles.ownedPixelsHeader}>
+              <div>
+                <div className={styles.ownedPixelsTitle}>Your Pixels</div>
+                <div className={styles.ownedPixelsSubtitle}>Jump to owned cells and reuse their color faster.</div>
+              </div>
+              <div className={styles.ownedPixelsHeaderActions}>
+                <div className={styles.ownedPixelsCount}>{ownedPixels.length}</div>
+                <button
+                  type="button"
+                  className={styles.ownedPixelsClose}
+                  onClick={() => setIsOwnedPixelsPanelOpen(false)}
+                  aria-label="Close owned pixels panel"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.ownedPixelsList}>
+              {ownedPixels.map((pixel) => {
+                const isActive = pixel.id === selectedOwnedPixelId;
+                return (
+                  <button
+                    key={pixel.id}
+                    type="button"
+                    className={`${styles.ownedPixelItem} ${isActive ? styles.ownedPixelItemActive : ""}`}
+                    onClick={() => handleOwnedPixelSelect(pixel)}
+                  >
+                    <span className={styles.ownedPixelSwatch} style={{ background: pixel.color }} />
+                    <span className={styles.ownedPixelMeta}>
+                      <span className={styles.ownedPixelCoords}>
+                        ({pixel.x}, {pixel.y})
+                      </span>
+                      <span className={styles.ownedPixelChallenge}>{pixel.challenge}</span>
+                    </span>
+                    <span className={styles.ownedPixelHex}>{pixel.color}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
+        ) : null}
+
         <canvas
           ref={canvasRef}
           className={styles.canvas}

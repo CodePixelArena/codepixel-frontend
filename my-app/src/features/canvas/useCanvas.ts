@@ -11,11 +11,12 @@ interface UseCanvasOptions {
   scale: number;
   offset: Point;
   hoverCell: Point | null;
+  highlightedCell?: Point | null;
   selectedColor: string;
 }
 
 export function useCanvas(options: UseCanvasOptions) {
-  const { canvasRef, width, height, baseCellSize, pixelBufferRef, palette, scale, offset, hoverCell, selectedColor } = options;
+  const { canvasRef, width, height, baseCellSize, pixelBufferRef, palette, scale, offset, hoverCell, highlightedCell = null, selectedColor } = options;
 
   const dirtyRef = useRef(true);
   const rafRef = useRef<number | null>(null);
@@ -98,12 +99,24 @@ export function useCanvas(options: UseCanvasOptions) {
       }
     }
 
+    if (highlightedCell) {
+      const highlightX = highlightedCell.x;
+      const highlightY = highlightedCell.y;
+      if (highlightX >= xStart && highlightX < xEnd && highlightY >= yStart && highlightY < yEnd) {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.14)";
+        ctx.fillRect(highlightX * pixelSize, highlightY * pixelSize, pixelSize, pixelSize);
+        ctx.strokeStyle = "#f8fafc";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(highlightX * pixelSize + 1, highlightY * pixelSize + 1, pixelSize - 2, pixelSize - 2);
+      }
+    }
+
     ctx.restore();
-  }, [canvasRef, width, height, pixelBufferRef, palette, scale, offset, hoverCell, selectedColor]);
+  }, [canvasRef, width, height, pixelBufferRef, palette, scale, offset, hoverCell, highlightedCell, selectedColor]);
 
   useEffect(() => {
     dirtyRef.current = true;
-  }, [palette, scale, offset, hoverCell, selectedColor]);
+  }, [palette, scale, offset, hoverCell, highlightedCell, selectedColor]);
 
   useEffect(() => {
     const renderFrame = () => {

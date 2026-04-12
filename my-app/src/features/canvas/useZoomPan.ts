@@ -172,6 +172,24 @@ export function useZoomPan(canvasRef: RefObject<HTMLCanvasElement | null>, optio
     [canvasRef, offset, scale, baseCellSize],
   );
 
+  const focusCell = useCallback(
+    (cell: Point, targetScale?: number) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const nextScale = clampScale(targetScale ?? Math.max(scale, 1.5), rect.width, rect.height);
+      const centeredOffset = {
+        x: rect.width / 2 - (cell.x + 0.5) * baseCellSize * nextScale,
+        y: rect.height / 2 - (cell.y + 0.5) * baseCellSize * nextScale,
+      };
+
+      setScale(nextScale);
+      setOffset(clampOffset(centeredOffset, rect.width, rect.height, nextScale));
+    },
+    [baseCellSize, canvasRef, clampOffset, clampScale, scale],
+  );
+
   return {
     scale,
     offset,
@@ -180,5 +198,6 @@ export function useZoomPan(canvasRef: RefObject<HTMLCanvasElement | null>, optio
     handlePointerMove,
     handlePointerUp,
     screenToGrid,
+    focusCell,
   } as const;
 }

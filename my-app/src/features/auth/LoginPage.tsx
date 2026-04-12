@@ -37,6 +37,84 @@ const errorStyle: CSSProperties = {
   marginTop: "0.25rem",
 };
 
+const frameStyle: CSSProperties = {
+  width: "100vw",
+  height: "100vh",
+  display: "flex",
+  background: "radial-gradient(circle at top, #111827 0%, #020617 70%)",
+  overflow: "hidden",
+  position: "fixed",
+  inset: 0,
+  zIndex: 9999,
+};
+
+const sideStyle: CSSProperties = {
+  flex: 1,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "clamp(2rem, 4vw, 3rem)",
+  background: "linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(14, 165, 233, 0.05))",
+  borderRight: "1px solid rgba(148, 163, 184, 0.1)",
+  minHeight: "100vh",
+};
+
+const sideCardStyle: CSSProperties = {
+  width: "100%",
+  maxWidth: "420px",
+  padding: "2rem",
+  borderRadius: "1.5rem",
+  background: "rgba(15, 23, 42, 0.45)",
+  border: "1px solid rgba(148, 163, 184, 0.12)",
+  boxShadow: "0 24px 60px rgba(0, 0, 0, 0.18)",
+  textAlign: "left",
+};
+
+const markStyle: CSSProperties = {
+  width: "3.5rem",
+  height: "3.5rem",
+  borderRadius: "1rem",
+  display: "grid",
+  placeItems: "center",
+  marginBottom: "1.25rem",
+  background: "linear-gradient(135deg, rgba(79, 70, 229, 0.92), rgba(14, 165, 233, 0.88))",
+  boxShadow: "0 12px 30px rgba(14, 165, 233, 0.18)",
+};
+
+const markBarsStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(2, 9px)",
+  gap: "6px",
+};
+
+const markBarStyle = (height: string): CSSProperties => ({
+  width: "9px",
+  height,
+  borderRadius: "999px",
+  background: "#f8fafc",
+  opacity: 0.95,
+});
+
+const panelWrapStyle: CSSProperties = {
+  flex: 1,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "clamp(1rem, 4vw, 3rem)",
+  overflowY: "auto",
+};
+
+const panelStyle: CSSProperties = {
+  width: "100%",
+  maxWidth: "420px",
+  padding: "2rem",
+  borderRadius: "1.5rem",
+  background: "rgba(15, 23, 42, 0.72)",
+  border: "1px solid rgba(148, 163, 184, 0.14)",
+  boxShadow: "0 24px 60px rgba(0, 0, 0, 0.22)",
+  backdropFilter: "blur(12px)",
+};
+
 export default function LoginPage({ onLoginComplete, onSignup }: LoginPageProps) {
   const [formData, setFormData] = useState({
     email: "",
@@ -106,6 +184,7 @@ export default function LoginPage({ onLoginComplete, onSignup }: LoginPageProps)
 
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("username", username);
+      localStorage.setItem("userEmail", user.email || formData.email);
 
       onLoginComplete(username);
       setIsSubmitting(false);
@@ -129,59 +208,36 @@ export default function LoginPage({ onLoginComplete, onSignup }: LoginPageProps)
   };
 
   return (
-    <div
-      style={{
-        width: "100vw",
-        height: "100vh",
-        display: "flex",
-        background: "radial-gradient(circle at top, #111827 0%, #020617 70%)",
-        overflow: "hidden",
-        position: "fixed",
-        inset: 0,
-        zIndex: 9999,
-      }}
-    >
-      {/* LEFT SIDE (UNCHANGED) */}
+    <div style={frameStyle}>
       {!isMobile && (
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "clamp(2rem, 4vw, 3rem)",
-            background:
-              "linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(14, 165, 233, 0.05) 100%)",
-            borderRight: "1px solid rgba(148, 163, 184, 0.1)",
-            minHeight: "100vh",
-          }}
-        >
-          <div style={{ textAlign: "center", maxWidth: "400px" }}>
-            <div style={{ fontSize: "clamp(3rem, 8vw, 4rem)" }}>🎨</div>
-            <h2 style={{ color: "#f8fafc" }}>CodePixel</h2>
-            <p style={{ color: "#cbd5e1" }}>
-              Join the creative community and paint beautiful pixel art together.
+        <div style={sideStyle}>
+          <div style={sideCardStyle}>
+            <div style={markStyle}>
+              <div style={markBarsStyle}>
+                <span style={markBarStyle("16px")} />
+                <span style={markBarStyle("22px")} />
+                <span style={markBarStyle("22px")} />
+                <span style={markBarStyle("16px")} />
+              </div>
+            </div>
+            <p style={{ margin: 0, textTransform: "uppercase", letterSpacing: "0.18em", fontSize: "0.78rem", color: "#7c93b4" }}>
+              CodePixel
+            </p>
+            <p style={{ color: "#cbd5e1", marginTop: "1rem", lineHeight: 1.7 }}>
+              Solve coding challenges, claim pixels, and keep your progress, colors, and rankings in one place.
             </p>
           </div>
         </div>
       )}
 
-      {/* RIGHT SIDE */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "clamp(1rem, 4vw, 3rem)",
-          overflowY: "auto",
-        }}
-      >
-        <div style={{ width: "100%", maxWidth: "420px" }}>
+      <div style={panelWrapStyle}>
+        <div style={panelStyle}>
           <div style={{ marginBottom: "clamp(2rem, 5vw, 3rem)", textAlign: "center" }}>
-            <h1 style={{ color: "#f8fafc" }}>Welcome back</h1>
-            <p style={{ color: "#cbd5e1" }}>Continue your journey</p>
+            <p style={{ margin: 0, textTransform: "uppercase", letterSpacing: "0.16em", fontSize: "0.76rem", color: "#7c93b4" }}>
+              Sign in
+            </p>
+            <h1 style={{ color: "#f8fafc", margin: "0.7rem 0 0" }}>Welcome back</h1>
+            <p style={{ color: "#cbd5e1", marginTop: "0.7rem" }}>Continue your journey on the canvas.</p>
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -227,7 +283,7 @@ export default function LoginPage({ onLoginComplete, onSignup }: LoginPageProps)
             </button>
           </form>
 
-          <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
+          <div style={{ textAlign: "center", marginTop: "1.5rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(148, 163, 184, 0.12)" }}>
             <p style={{ color: "#cbd5e1" }}>
               Don't have an account?{" "}
               <button
@@ -237,6 +293,7 @@ export default function LoginPage({ onLoginComplete, onSignup }: LoginPageProps)
                   border: "none",
                   color: "#4f46e5",
                   cursor: "pointer",
+                  fontWeight: 700,
                 }}
               >
                 Sign up
