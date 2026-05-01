@@ -5,6 +5,7 @@ import SignupPage from "./features/auth/SignupPage";
 import Statistics from "./features/canvas/Statistics";
 import AboutUs from "./features/canvas/AboutUs";
 import Profile from "./features/canvas/Profile";
+import { clearAuthSession } from "./api";
 
 const buttonStyle: CSSProperties = {
   border: "1px solid rgba(148, 163, 184, 0.18)",
@@ -24,10 +25,8 @@ function App() {
 
   const [page, setPage] = useState<"home" | "login" | "signup" | "board" | "statistics" | "aboutus" | "profile">(getCurrentPage);
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    // Check if user is logged in from localStorage
-    return localStorage.getItem("isLoggedIn") === "true";
-  });
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem("token"));
+  const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(localStorage.getItem("token")));
 
   const username = localStorage.getItem("username") || "U";
   const avatarLetter = username.charAt(0).toUpperCase();
@@ -44,6 +43,11 @@ function App() {
   }, []);
 
   const openBoard = () => {
+    if (!isLoggedIn) {
+      window.history.pushState(null, "", "/login");
+      setPage("login");
+      return;
+    }
     window.history.pushState(null, "", "/board");
     setPage("board");
   };
@@ -58,17 +62,23 @@ function App() {
     setPage("signup");
   };
 
-  const handleLoginComplete = (username: string) => {
+  const handleLoginComplete = (username: string, token: string) => {
     setIsLoggedIn(true);
+    setToken(token);
+    localStorage.setItem("token", token);
     localStorage.setItem("username", username);
+    localStorage.setItem("isLoggedIn", "true");
     window.history.pushState(null, "", "/");
     setPage("home");
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    localStorage.removeItem("isLoggedIn");
+    setToken(null);
+    clearAuthSession();
     setIsAvatarMenuOpen(false);
+    window.history.pushState(null, "", "/");
+    setPage("home");
   };
 
 
@@ -79,7 +89,7 @@ function App() {
           ? { width: "100%", height: "100vh", overflow: "hidden" }
           : {
               minHeight: "100vh",
-              padding: "2rem",
+              padding: "clamp(1rem, 3vw, 2rem)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -100,14 +110,14 @@ function App() {
             justifyContent: "center",
             alignItems: "center",
             minHeight: "100vh",
-            padding: "1rem",
+            padding: "clamp(0.6rem, 2vw, 1rem)",
           }}
         >
           <section
             style={{
               position: "relative",
               width: "100%",
-              padding: "2rem",
+              padding: "clamp(1.2rem, 3vw, 2rem)",
               borderRadius: "1.5rem",
               background: "rgba(15, 23, 42, 0.98)",
               border: "1px solid rgba(148, 163, 184, 0.12)",
@@ -223,7 +233,7 @@ function App() {
 
         </main>
       ) : page === "board" ? (
-        <PixelCanvas isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} setPage={setPage} />
+        <PixelCanvas token={token ?? undefined} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} setPage={setPage} onLogout={handleLogout} />
       ) : page === "statistics" ? (
         <Statistics onBack={openBoard} />
       ) : page === "aboutus" ? (

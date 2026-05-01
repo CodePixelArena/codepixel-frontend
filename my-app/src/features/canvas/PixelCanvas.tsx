@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import { useCanvas } from "./useCanvas";
-import { usePixelSocket, type PixelUpdateMessage } from "./usePixelSocket";
 import { useZoomPan } from "./useZoomPan";
-import { PALETTE, BASE_CELL_SIZE, GRID_HEIGHT, GRID_WIDTH, WS_URL } from "../../shared/utils/palette";
+import { PALETTE, BASE_CELL_SIZE, GRID_HEIGHT, GRID_WIDTH } from "../../shared/utils/palette";
 import PixelToolbar from "../pixel/PixelToolbar";
 import ColorPalette from "../pixel/ColorPalette";
 import styles from "./PixelCanvas.module.css";
-import { getProfileData, type OwnedPixel } from "./mockPlatformData";
+import { apiUrl, getAuthToken } from "../../api";
 
 const COOLDOWN_SECONDS = 5;
 
@@ -21,16 +20,26 @@ interface ChallengeProblem {
   testCode: string;
 }
 
+interface OwnedPixel {
+  id: string;
+  x: number;
+  y: number;
+  color: string;
+  updatedAt: string;
+  challenge?: string;
+}
+
 interface PixelCanvasProps {
+  token?: string;
   isLoggedIn?: boolean;
   setIsLoggedIn?: (value: boolean) => void;
   setPage?: (page: "home" | "login" | "signup" | "board" | "statistics" | "aboutus" | "profile") => void;
+  onLogout?: () => void;
 }
 
-export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage }: PixelCanvasProps) {
+export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage, onLogout }: PixelCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const pixelBufferRef = useRef<Uint8Array>(new Uint8Array(GRID_WIDTH * GRID_HEIGHT));
-  const initialOwnedPixels = getProfileData().ownedPixels;
   const [selectedColorIndex, setSelectedColorIndex] = useState(1);
   const [cooldown, setCooldown] = useState(0);
   const [hoverCell, setHoverCell] = useState<{ x: number; y: number } | null>(null);
@@ -43,7 +52,7 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
   const [challengeResult, setChallengeResult] = useState<string | null>(null);
   const [isVerifyingChallenge, setIsVerifyingChallenge] = useState(false);
   const [pendingRecolorCell, setPendingRecolorCell] = useState<{ x: number; y: number } | null>(null);
-  const [ownedPixels, setOwnedPixels] = useState<OwnedPixel[]>(initialOwnedPixels);
+  const [ownedPixels, setOwnedPixels] = useState<OwnedPixel[]>([]);
   const [isOwnedPixelsPanelOpen, setIsOwnedPixelsPanelOpen] = useState(false);
   const [selectedOwnedPixelId, setSelectedOwnedPixelId] = useState<string | null>(null);
   const renderRequestRef = useRef<() => void>(() => {});
@@ -54,15 +63,6 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
     height: GRID_HEIGHT,
     baseCellSize: BASE_CELL_SIZE,
   });
-
-  const { status, sendPixel } = usePixelSocket(WS_URL, useCallback((update: PixelUpdateMessage) => {
-    if (update.x < 0 || update.x >= GRID_WIDTH || update.y < 0 || update.y >= GRID_HEIGHT) {
-      return;
-    }
-    const index = update.y * GRID_WIDTH + update.x;
-    pixelBufferRef.current[index] = update.color;
-    renderRequestRef.current();
-  }, []));
 
   const { requestRender } = useCanvas({
     canvasRef,
@@ -79,37 +79,99 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
   });
 
   useEffect(() => {
-    const nextBuffer = pixelBufferRef.current.slice();
-    for (const pixel of initialOwnedPixels) {
-      const paletteIndex = PALETTE.findIndex((color) => color.toLowerCase() === pixel.color.toLowerCase());
-      const index = pixel.y * GRID_WIDTH + pixel.x;
-      if (index >= 0 && index < nextBuffer.length) {
-        nextBuffer[index] = paletteIndex > 0 ? paletteIndex : 1;
+    const updateBuffer = () => {
+      const nextBuffer = pixelBufferRef.current.slice();
+      for (const pixel of ownedPixels) {
+        const paletteIndex = PALETTE.findIndex((color) => color.toLowerCase() === pixel.color.toLowerCase());
+        const index = pixel.y * GRID_WIDTH + pixel.x;
+        if (index >= 0 && index < nextBuffer.length) {
+          nextBuffer[index] = paletteIndex > 0 ? paletteIndex : 1;
+        }
       }
-    }
-    pixelBufferRef.current = nextBuffer;
-    requestRender();
-  }, [initialOwnedPixels, requestRender]);
+      pixelBufferRef.current = nextBuffer;
+      requestRender();
+    };
+
+    updateBuffer();
+  }, [ownedPixels, requestRender]);
 
   useEffect(() => {
     renderRequestRef.current = requestRender;
   }, [requestRender]);
 
+  useEffect(() => {
+    const fetchPixels = async () => {
+      try {
+        const token = getAuthToken();
+        const response = await fetch(apiUrl("/api/pixels"), {
+          headers: token
+            ? { Authorization: `Bearer ${token}` }
+            : undefined,
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const pixels = (await response.json()) as Array<{
+          id: number;
+          x: number;
+          y: number;
+          color: string;
+        }>;
+
+        setOwnedPixels(
+          pixels.map((pixel) => ({
+            id: pixel.id.toString(),
+            x: pixel.x,
+            y: pixel.y,
+            color: pixel.color,
+            updatedAt: "Loaded",
+          })),
+        );
+      } catch {
+        // Ignore load failures so the board stays empty.
+      }
+    };
+
+    fetchPixels();
+  }, []);
+
   const placePixel = useCallback(
-    (x: number, y: number) => {
+    async (x: number, y: number) => {
+      const color = PALETTE[selectedColorIndex];
       const index = y * GRID_WIDTH + x;
       pixelBufferRef.current[index] = selectedColorIndex;
       setOwnedPixels((currentPixels) =>
         currentPixels.map((pixel) =>
           pixel.x === x && pixel.y === y
-            ? { ...pixel, color: PALETTE[selectedColorIndex], updatedAt: "Just now" }
+            ? { ...pixel, color, updatedAt: "Just now" }
             : pixel,
         ),
       );
       requestRender();
-      sendPixel({ x, y, color: selectedColorIndex });
+
+      const token = getAuthToken();
+      if (!token) {
+        setChallengeError("Please login to place pixels.");
+        setPage?.("login");
+        return;
+      }
+
+      try {
+        await fetch(apiUrl("/api/pixels"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ x, y, color }),
+        });
+      } catch {
+        // Do nothing if the backend is unavailable; current board state remains local.
+      }
     },
-    [requestRender, sendPixel, selectedColorIndex],
+    [requestRender, selectedColorIndex, setPage],
   );
 
   const fetchChallenge = useCallback(async () => {
@@ -440,6 +502,8 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
 
   const codeLineCount = Math.max(1, challengeCode.split("\n").length);
   const codeCharCount = challengeCode.length;
+  const status: "connecting" | "connected" | "disconnected" | "error" =
+    typeof window !== "undefined" && window.navigator.onLine ? "connected" : "error";
 
   return (
     <div className={styles.container}>
@@ -453,6 +517,7 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
         isLoggedIn={isLoggedIn}
         setIsLoggedIn={setIsLoggedIn}
         setPage={setPage}
+        onLogout={onLogout}
         onTogglePixelsPanel={() => setIsOwnedPixelsPanelOpen((current) => !current)}
       />
 

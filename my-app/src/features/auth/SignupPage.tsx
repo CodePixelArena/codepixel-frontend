@@ -1,7 +1,8 @@
 import { useState, useEffect, type CSSProperties } from "react";
+import { apiUrl } from "../../api";
 
 interface SignupPageProps {
-  onLoginComplete: (username: string) => void;
+  onLoginComplete: (username: string, token: string) => void;
   onBack: () => void;
 }
 
@@ -136,17 +137,6 @@ export default function SignupPage({ onLoginComplete, onBack }: SignupPageProps)
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const getUsers = () =>
-    JSON.parse(localStorage.getItem("registeredUsers") || "[]");
-
-  const isEmailTaken = (email: string) =>
-    getUsers().some((u: any) => u.email.toLowerCase() === email.toLowerCase());
-
-  const isNicknameTaken = (nickname: string) =>
-    getUsers().some(
-      (u: any) => u.nickname.toLowerCase() === nickname.toLowerCase()
-    );
-
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -154,16 +144,12 @@ export default function SignupPage({ onLoginComplete, onBack }: SignupPageProps)
       newErrors.nickname = "Nickname is required";
     } else if (formData.nickname.length < 3) {
       newErrors.nickname = "At least 3 characters";
-    } else if (isNicknameTaken(formData.nickname)) {
-      newErrors.nickname = "Nickname already taken";
     }
 
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!emailRegex.test(formData.email)) {
       newErrors.email = "Invalid email";
-    } else if (isEmailTaken(formData.email)) {
-      newErrors.email = "Email already registered";
     }
 
     if (!formData.password) {
@@ -182,31 +168,55 @@ export default function SignupPage({ onLoginComplete, onBack }: SignupPageProps)
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsSubmitting(true);
+    setErrors({});
 
-    setTimeout(() => {
-      const users = getUsers();
+    try {
+      const registerResponse = await fetch(apiUrl("/api/auth/register"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          displayName: formData.nickname,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-      const newUser = {
-        nickname: formData.nickname,
-        email: formData.email,
-        password: formData.password,
-      };
+      const registerResult = await registerResponse.json();
+      if (!registerResponse.ok) {
+        setErrors({ general: registerResult.message || "Registration failed." });
+        setIsSubmitting(false);
+        return;
+      }
 
-      users.push(newUser);
-      localStorage.setItem("registeredUsers", JSON.stringify(users));
+      const loginResponse = await fetch(apiUrl("/api/auth/login"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
+      });
 
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("username", formData.nickname);
+      const loginResult = await loginResponse.json();
+      if (!loginResponse.ok) {
+        setErrors({ general: loginResult.message || "Login after registration failed." });
+        setIsSubmitting(false);
+        return;
+      }
+
       localStorage.setItem("userEmail", formData.email);
-
-      onLoginComplete(formData.nickname);
+      onLoginComplete(loginResult.username, loginResult.token);
+    } catch {
+      setErrors({ general: "Unable to reach the server." });
+    } finally {
       setIsSubmitting(false);
-    }, 400);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

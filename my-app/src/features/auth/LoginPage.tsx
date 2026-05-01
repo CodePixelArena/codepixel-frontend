@@ -1,7 +1,8 @@
 import { useState, useEffect, type CSSProperties } from "react";
+import { apiUrl } from "../../api";
 
 interface LoginPageProps {
-  onLoginComplete: (username: string) => void;
+  onLoginComplete: (username: string, token: string) => void;
   onSignup: () => void;
 }
 
@@ -137,16 +138,6 @@ export default function LoginPage({ onLoginComplete, onSignup }: LoginPageProps)
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const getUsers = () =>
-    JSON.parse(localStorage.getItem("registeredUsers") || "[]");
-
-  const validateLogin = () => {
-    const users = getUsers();
-    return users.find(
-      (u: any) => u.email.toLowerCase() === formData.email.toLowerCase()
-    );
-  };
-
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -160,35 +151,39 @@ export default function LoginPage({ onLoginComplete, onSignup }: LoginPageProps)
       newErrors.password = "Password is required";
     }
 
-    const user = validateLogin();
-
-    if (!newErrors.email && !newErrors.password) {
-      if (!user || user.password !== formData.password) {
-        newErrors.general = "Invalid email or password";
-      }
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsSubmitting(true);
+    setErrors({});
 
-    setTimeout(() => {
-      const user = validateLogin();
-      const username = user.nickname || formData.email.split("@")[0];
+    try {
+      const response = await fetch(apiUrl("/api/auth/login"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("username", username);
-      localStorage.setItem("userEmail", user.email || formData.email);
+      const result = await response.json();
+      if (!response.ok) {
+        setErrors({ general: result.message || "Invalid login credentials" });
+        setIsSubmitting(false);
+        return;
+      }
 
-      onLoginComplete(username);
+      onLoginComplete(result.username, result.token);
+    } catch {
+      setErrors({ general: "Unable to reach the server." });
+    } finally {
       setIsSubmitting(false);
-    }, 400);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

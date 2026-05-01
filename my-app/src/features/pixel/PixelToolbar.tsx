@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "../canvas/PixelCanvas.module.css";
+import { clearAuthSession } from "../../api";
 
 interface PixelToolbarProps {
   status: "connecting" | "connected" | "disconnected" | "error";
@@ -12,6 +13,7 @@ interface PixelToolbarProps {
   setIsLoggedIn?: (value: boolean) => void;
   setPage?: (page: "home" | "login" | "signup" | "board" | "statistics" | "aboutus" | "profile") => void;
   onTogglePixelsPanel?: () => void;
+  onLogout?: () => void;
 }
 
 const STATUS_DOT_CLASS: Record<string, string> = {
@@ -32,6 +34,7 @@ export default function PixelToolbar({
   setIsLoggedIn,
   setPage,
   onTogglePixelsPanel,
+  onLogout,
 }: PixelToolbarProps) {
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -51,9 +54,14 @@ export default function PixelToolbar({
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
+    clearAuthSession();
     setIsLoggedIn?.(false);
     setIsAvatarMenuOpen(false);
+    onLogout?.();
+    if (!onLogout) {
+      window.history.pushState(null, "", "/");
+      setPage?.("home");
+    }
   };
 
   return (

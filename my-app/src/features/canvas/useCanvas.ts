@@ -112,7 +112,7 @@ export function useCanvas(options: UseCanvasOptions) {
     }
 
     ctx.restore();
-  }, [canvasRef, width, height, pixelBufferRef, palette, scale, offset, hoverCell, highlightedCell, selectedColor]);
+  }, [canvasRef, width, height, baseCellSize, pixelBufferRef, palette, scale, offset, hoverCell, highlightedCell, selectedColor]);
 
   useEffect(() => {
     dirtyRef.current = true;
