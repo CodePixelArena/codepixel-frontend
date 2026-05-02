@@ -78,9 +78,37 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
     selectedColor: PALETTE[selectedColorIndex],
   });
 
+  const applyPixelToCanvas = useCallback(
+    (x: number, y: number, color: string, id?: string | number, updatedAt = "Just now") => {
+      const paletteIndex = PALETTE.findIndex((paletteColor) => paletteColor.toLowerCase() === color.toLowerCase());
+      const index = y * GRID_WIDTH + x;
+      if (index >= 0 && index < pixelBufferRef.current.length) {
+        pixelBufferRef.current[index] = paletteIndex > 0 ? paletteIndex : 1;
+      }
+
+      setOwnedPixels((currentPixels) => {
+        const existingPixel = currentPixels.find((pixel) => pixel.x === x && pixel.y === y);
+        const nextPixel: OwnedPixel = {
+          id: id?.toString() ?? existingPixel?.id ?? `local-${x}-${y}`,
+          x,
+          y,
+          color,
+          updatedAt,
+          challenge: existingPixel?.challenge,
+        };
+
+        const remainingPixels = currentPixels.filter((pixel) => pixel.x !== x || pixel.y !== y);
+        return [nextPixel, ...remainingPixels];
+      });
+
+      requestRender();
+    },
+    [requestRender],
+  );
+
   useEffect(() => {
     const updateBuffer = () => {
-      const nextBuffer = pixelBufferRef.current.slice();
+      const nextBuffer = new Uint8Array(GRID_WIDTH * GRID_HEIGHT);
       for (const pixel of ownedPixels) {
         const paletteIndex = PALETTE.findIndex((color) => color.toLowerCase() === pixel.color.toLowerCase());
         const index = pixel.y * GRID_WIDTH + pixel.x;
@@ -120,15 +148,18 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
           color: string;
         }>;
 
-        setOwnedPixels(
-          pixels.map((pixel) => ({
+        const latestPixelsByCell = new Map<string, OwnedPixel>();
+        for (const pixel of pixels) {
+          latestPixelsByCell.set(`${pixel.x}:${pixel.y}`, {
             id: pixel.id.toString(),
             x: pixel.x,
             y: pixel.y,
             color: pixel.color,
             updatedAt: "Loaded",
-          })),
-        );
+          });
+        }
+
+        setOwnedPixels(Array.from(latestPixelsByCell.values()));
       } catch {
         // Ignore load failures so the board stays empty.
       }
@@ -140,17 +171,6 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
   const placePixel = useCallback(
     async (x: number, y: number) => {
       const color = PALETTE[selectedColorIndex];
-      const index = y * GRID_WIDTH + x;
-      pixelBufferRef.current[index] = selectedColorIndex;
-      setOwnedPixels((currentPixels) =>
-        currentPixels.map((pixel) =>
-          pixel.x === x && pixel.y === y
-            ? { ...pixel, color, updatedAt: "Just now" }
-            : pixel,
-        ),
-      );
-      requestRender();
-
       const token = getAuthToken();
       if (!token) {
         setChallengeError("Please login to place pixels.");
@@ -158,8 +178,10 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
         return;
       }
 
+      applyPixelToCanvas(x, y, color);
+
       try {
-        await fetch(apiUrl("/api/pixels"), {
+        const response = await fetch(apiUrl("/api/pixels"), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -167,11 +189,20 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
           },
           body: JSON.stringify({ x, y, color }),
         });
+        if (response.ok) {
+          const savedPixel = (await response.json()) as { id?: number; x?: number; y?: number; color?: string };
+          applyPixelToCanvas(
+            savedPixel.x ?? x,
+            savedPixel.y ?? y,
+            savedPixel.color ?? color,
+            savedPixel.id,
+          );
+        }
       } catch {
         // Do nothing if the backend is unavailable; current board state remains local.
       }
     },
-    [requestRender, selectedColorIndex, setPage],
+    [applyPixelToCanvas, selectedColorIndex, setPage],
   );
 
   const fetchChallenge = useCallback(async () => {
