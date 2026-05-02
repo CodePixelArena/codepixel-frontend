@@ -2,25 +2,100 @@ import { useEffect, useState } from "react";
 import { apiUrl } from "../../api";
 import styles from "./Statistics.module.css";
 
+type OverviewItem = { Label: string; Value: string | number; Note: string };
+type PlayerItem = {
+  Rank: number;
+  Username: string;
+  OwnedPixels: number;
+  SolvedChallenges: number;
+  Submissions: number;
+  Accuracy: number;
+};
+type HistoryItem = { Label: string; Time: string };
+type RawOverviewItem = { label?: string; value?: string | number; note?: string };
+type RawPlayerItem = {
+  rank?: number;
+  username?: string;
+  ownedPixels?: number;
+  solvedChallenges?: number;
+  submissions?: number;
+  accuracy?: number;
+};
+type RawHistoryItem = { label?: string; time?: string };
+type UnknownRecord = Record<string, unknown>;
+
 interface StatisticsData {
-  Overview: Array<{ Label: string; Value: string | number; Note: string }>;
-  TopPlayers: Array<{
-    Rank: number;
-    Username: string;
-    OwnedPixels: number;
-    SolvedChallenges: number;
-    Submissions: number;
-    Accuracy: number;
-  }>;
-  PixelOwners: Array<{
-    Rank: number;
-    Username: string;
-    OwnedPixels: number;
-    SolvedChallenges: number;
-    Submissions: number;
-    Accuracy: number;
-  }>;
-  RecentHistory: Array<{ Label: string; Time: string }>;
+  Overview: OverviewItem[];
+  TopPlayers: PlayerItem[];
+  PixelOwners: PlayerItem[];
+  RecentHistory: HistoryItem[];
+}
+
+type StatisticsApiData = Partial<StatisticsData> & {
+  overview?: RawOverviewItem[];
+  topPlayers?: RawPlayerItem[];
+  pixelOwners?: RawPlayerItem[];
+  recentHistory?: RawHistoryItem[];
+};
+
+function normalizeOverview(items: OverviewItem[] | RawOverviewItem[] | undefined): OverviewItem[] {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items.map((item) => {
+    const value = item as UnknownRecord;
+
+    return {
+      Label: (value.Label as string | undefined) ?? (value.label as string | undefined) ?? "Unknown",
+      Value: (value.Value as string | number | undefined) ?? (value.value as string | number | undefined) ?? "-",
+      Note: (value.Note as string | undefined) ?? (value.note as string | undefined) ?? "",
+    };
+  });
+}
+
+function normalizePlayers(items: PlayerItem[] | RawPlayerItem[] | undefined): PlayerItem[] {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items.map((item, index) => {
+    const value = item as UnknownRecord;
+
+    return {
+      Rank: (value.Rank as number | undefined) ?? (value.rank as number | undefined) ?? index + 1,
+      Username: (value.Username as string | undefined) ?? (value.username as string | undefined) ?? "Unknown",
+      OwnedPixels: (value.OwnedPixels as number | undefined) ?? (value.ownedPixels as number | undefined) ?? 0,
+      SolvedChallenges:
+        (value.SolvedChallenges as number | undefined) ?? (value.solvedChallenges as number | undefined) ?? 0,
+      Submissions: (value.Submissions as number | undefined) ?? (value.submissions as number | undefined) ?? 0,
+      Accuracy: (value.Accuracy as number | undefined) ?? (value.accuracy as number | undefined) ?? 0,
+    };
+  });
+}
+
+function normalizeHistory(items: HistoryItem[] | RawHistoryItem[] | undefined): HistoryItem[] {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items.map((item) => {
+    const value = item as UnknownRecord;
+
+    return {
+      Label: (value.Label as string | undefined) ?? (value.label as string | undefined) ?? "Unknown activity",
+      Time: (value.Time as string | undefined) ?? (value.time as string | undefined) ?? "",
+    };
+  });
+}
+
+function normalizeStatisticsData(data: StatisticsApiData): StatisticsData {
+  return {
+    Overview: normalizeOverview(data.Overview ?? data.overview),
+    TopPlayers: normalizePlayers(data.TopPlayers ?? data.topPlayers),
+    PixelOwners: normalizePlayers(data.PixelOwners ?? data.pixelOwners),
+    RecentHistory: normalizeHistory(data.RecentHistory ?? data.recentHistory),
+  };
 }
 
 interface StatisticsProps {
@@ -40,7 +115,7 @@ export default function Statistics({ onBack }: StatisticsProps) {
       if (!response.ok) {
         throw new Error(`Statistics request failed (${response.status})`);
       }
-      const data = (await response.json()) as StatisticsData;
+      const data = normalizeStatisticsData((await response.json()) as StatisticsApiData);
       setStats(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
