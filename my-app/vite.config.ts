@@ -10,6 +10,11 @@ export default defineConfig({
         target: "http://localhost:5034",
         changeOrigin: true,
       },
+      "/pixelHub": {
+        target: "http://localhost:5034",
+        changeOrigin: true,
+        ws: true,
+      },
     },
   },
 })

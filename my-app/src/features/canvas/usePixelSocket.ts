@@ -1,9 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { HubConnectionBuilder, HubConnectionState, LogLevel, type HubConnection } from "@microsoft/signalr";
+import { getAuthToken } from "../../api";
 
 export type PixelUpdateMessage = {
+  id?: number;
   x: number;
   y: number;
-  color: number;
+  color: string;
+  userId?: string;
+  placedAt?: string;
 };
 
 export type PixelSocketStatus = "connecting" | "connected" | "disconnected" | "error";
@@ -13,69 +18,65 @@ export function usePixelSocket(
   onRemotePixel: (update: PixelUpdateMessage) => void,
 ) {
   const [status, setStatus] = useState<PixelSocketStatus>("connecting");
-  const socketRef = useRef<WebSocket | null>(null);
-  const reconnectTimeout = useRef<number | null>(null);
+  const connectionRef = useRef<HubConnection | null>(null);
 
   useEffect(() => {
     let active = true;
 
-    const connect = () => {
-      if (!active) return;
-      setStatus("connecting");
-      const socket = new WebSocket(url);
-      socket.onopen = () => {
-        if (!active) return;
+    const connection = new HubConnectionBuilder()
+      .withUrl(url, {
+        accessTokenFactory: () => getAuthToken() ?? "",
+        withCredentials: true,
+      })
+      .withAutomaticReconnect()
+      .configureLogging(LogLevel.Warning)
+      .build();
+
+    connectionRef.current = connection;
+    connection.on("PixelUpdated", (update: PixelUpdateMessage) => {
+      if (active) {
+        onRemotePixel(update);
+      }
+    });
+
+    connection.onreconnecting(() => {
+      if (active) {
+        setStatus("connecting");
+      }
+    });
+
+    connection.onreconnected(() => {
+      if (active) {
         setStatus("connected");
-      };
+      }
+    });
 
-      socket.onmessage = (event) => {
-        if (!active) return;
-        try {
-          const data = JSON.parse(event.data) as { type: string; payload: PixelUpdateMessage };
-          if (data.type === "pixel") {
-            onRemotePixel(data.payload);
-          }
-        } catch {
-          // Ignore invalid messages.
-        }
-      };
-
-      socket.onerror = () => {
-        if (!active) return;
-        setStatus("error");
-      };
-
-      socket.onclose = () => {
-        if (!active) return;
+    connection.onclose(() => {
+      if (active) {
         setStatus("disconnected");
-        reconnectTimeout.current = window.setTimeout(connect, 3000);
-      };
+      }
+    });
 
-      socketRef.current = socket;
-    };
-
-    connect();
+    void connection
+      .start()
+      .then(() => {
+        if (active) {
+          setStatus("connected");
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setStatus("error");
+        }
+      });
 
     return () => {
       active = false;
-      if (reconnectTimeout.current !== null) {
-        window.clearTimeout(reconnectTimeout.current);
-      }
-      if (socketRef.current) {
-        socketRef.current.close();
+      if (connection.state !== HubConnectionState.Disconnected) {
+        void connection.stop();
       }
     };
   }, [url, onRemotePixel]);
 
-  const sendPixel = useCallback((payload: PixelUpdateMessage) => {
-    const socket = socketRef.current;
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-      return false;
-    }
-
-    socket.send(JSON.stringify({ type: "pixel", payload }));
-    return true;
-  }, []);
-
-  return { status, sendPixel } as const;
+  return { status } as const;
 }

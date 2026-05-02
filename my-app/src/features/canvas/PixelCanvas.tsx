@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import { useCanvas } from "./useCanvas";
+import { usePixelSocket, type PixelUpdateMessage } from "./usePixelSocket";
 import { useZoomPan } from "./useZoomPan";
 import { PALETTE, BASE_CELL_SIZE, GRID_HEIGHT, GRID_WIDTH } from "../../shared/utils/palette";
 import PixelToolbar from "../pixel/PixelToolbar";
@@ -105,6 +106,15 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
     },
     [requestRender],
   );
+
+  const handleRemotePixel = useCallback(
+    (update: PixelUpdateMessage) => {
+      applyPixelToCanvas(update.x, update.y, update.color, update.id, "Live");
+    },
+    [applyPixelToCanvas],
+  );
+
+  const { status } = usePixelSocket(apiUrl("/pixelHub"), handleRemotePixel);
 
   useEffect(() => {
     const updateBuffer = () => {
@@ -533,9 +543,6 @@ export default function PixelCanvas({ isLoggedIn = false, setIsLoggedIn, setPage
 
   const codeLineCount = Math.max(1, challengeCode.split("\n").length);
   const codeCharCount = challengeCode.length;
-  const status: "connecting" | "connected" | "disconnected" | "error" =
-    typeof window !== "undefined" && window.navigator.onLine ? "connected" : "error";
-
   return (
     <div className={styles.container}>
       <PixelToolbar
